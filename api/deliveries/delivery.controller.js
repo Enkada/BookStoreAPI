@@ -1,22 +1,18 @@
 const { 
-    createEmployee, 
-    getEmployeeById, 
-    deleteEmployee, 
-    updateEmployee, 
-    getEmployees,
-    getEmployeeByPhone
-} = require("./employee.service");
-
-const { hashSync, genSaltSync, compareSync } = require("bcrypt");
-const { sign } = require("jsonwebtoken");
+    createDelivery, 
+    getDeliveryById, 
+    deleteDelivery, 
+    updateDeliveryDateTime, 
+    getDeliveries,
+    addDeliveryBook,
+    getDeliveryBooks,
+    deleteDeliveryBooks
+} = require("./delivery.service");
 
 module.exports = {
-    createEmployee: (req, res) => {
+    createDelivery: (req, res) => {
         const body = req.body;
-        const salt = genSaltSync(10);
-        body.password = hashSync(body.password, salt);
-
-        createEmployee(body, (err, results) => {
+        createDelivery(body, (err, results) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({
@@ -30,9 +26,9 @@ module.exports = {
             });
         });
     },
-    getEmployeeById: (req, res) => {
+    getDeliveryById: (req, res) => {
         const id = req.params.id;
-        getEmployeeById(id, (err, results) => {
+        getDeliveryById(id, (err, results) => {
             if (err) {
                 console.log(err);
                 return;
@@ -49,8 +45,8 @@ module.exports = {
             });
         })
     },
-    getEmployees: (req, res) => {
-        getEmployees((err, results) => {
+    getDeliveries: (req, res) => {
+        getDeliveries((err, results) => {
             if (err) {
                 console.log(err);
                 return;
@@ -61,12 +57,9 @@ module.exports = {
             });
         })
     },
-    updateEmployee: (req, res) => {
+    updateDeliveryDateTime: (req, res) => {
         const body = req.body;
-        //const salt = genSaltSync(10);
-        //body.password = hashSync(body.password, salt);
-
-        updateEmployee(body, (err, results) => {
+        updateDeliveryDateTime(body, (err, results) => {
             if (err) {
                 console.log(err);
                 return;
@@ -85,9 +78,9 @@ module.exports = {
             });
         });
     },
-    deleteEmployee: (req, res) => {
+    deleteDelivery: (req, res) => {
         const id = req.body.id;
-        deleteEmployee(id, (err, results) => {
+        deleteDelivery(id, (err, results) => {
             if (err) {
                 console.log(err);
                 return;
@@ -106,37 +99,55 @@ module.exports = {
             });
         })
     },
-    login: (req, res) => {
+    addDeliveryBook: (req, res) => {
+        const id = req.params.id;
         const body = req.body;
-        getEmployeeByPhone(body.phone, (err, results) => {
+        addDeliveryBook([id, body], (err, results) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: 0,
+                    message: "DB connection error!"
+                });
+            }
+            return res.status(200).json({
+                success: 1,
+                data: results
+            });
+        });
+    },
+    getDeliveryBooks: (req, res) => {
+        const id = req.params.id;
+        getDeliveryBooks(id, (err, results) => {
             if (err) {
                 console.log(err);
                 return;
             }
-            if (!results) {
+            return res.status(200).json({
+                success: 1,
+                data: results
+            });
+        });
+    },
+    deleteDeliveryBooks: (req, res) => {
+        const id = req.params.id;
+        deleteDeliveryBooks(id, (err, results) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            if (!results.affectedRows) {
                 return res.json({
                     success: 0,
-                    message: "Неверные данные",
+                    message: "Запись не найдена",
                     data: results
                 });
             }
-            const compareResult = compareSync(body.password, results.password);
-            if (compareResult) {
-                results.password = undefined;
-                const jsontoken = sign({ result: compareResult }, "ADMIN_KEY", {
-                    expiresIn: "1h"
-                });
-                return res.json({
-                    success: 1,
-                    message: "Вход произведен успешно",
-                    token: jsontoken
-                });
-            } else {
-                return res.json({
-                    success: 0,
-                    message: "Неверные данные"
-                });
-            }            
+            return res.json({
+                success: 1,
+                message: "Запись успешно удалена",
+                data: results
+            });
         })
-    },
+    }
 };

@@ -3,12 +3,14 @@ const {
     getBookByISBN, 
     deleteBook, 
     updateBook, 
-    getBooks
+    getBooks,
+    getBookAvailability
 } = require("./book.service");
 
 module.exports = {
     createBook: (req, res) => {
         const body = req.body;
+        body.ISBN = body.ISBN.replace(/-/g, '')
         createBook(body, (err, results) => {
             if (err) {
                 console.log(err);
@@ -92,9 +94,28 @@ module.exports = {
             }
             return res.json({
                 success: 1,
-                message: "Пользователь успешно удален",
+                message: "Запись успешно удалена",
                 data: results
             });
         })
-    }
+    },
+    getBookAvailability: (req, res) => {
+        const ISBN = req.params.ISBN;
+        getBookAvailability(ISBN, (err, results) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            if (!results) {
+                return res.json({
+                    success: 0,
+                    message: "Запись не найдена"
+                });
+            }
+            return res.status(200).json({
+                success: 1,
+                data: results
+            });
+        })
+    },
 };

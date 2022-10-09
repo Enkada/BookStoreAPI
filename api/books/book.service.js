@@ -76,5 +76,21 @@ module.exports = {
                 return callBack(null, results)
             }
         );
-    }
+    },
+    getBookAvailability: (ISBN, callBack) => {
+        pool.query(
+            `SELECT books_availability.*, shops.address as shop_address, warehouses.address as warehouse_address
+            FROM books_availability
+            LEFT JOIN warehouses ON warehouses.id = warehouse_id 
+            LEFT JOIN shops ON shops.id = shop_id 
+            WHERE book_isbn = ?`, 
+            [ISBN],
+            (error, results, fields) => {
+                if (error) {
+                    return callBack(error)
+                }
+                return callBack(null, results)
+            }
+        );
+    },
 };
